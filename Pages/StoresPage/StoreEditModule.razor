@@ -1,0 +1,90 @@
+@inject StoreDBContext DbContext
+
+@if (IsOpen)
+{
+    <div class="card">
+        <div class="card-body">
+            <label>Store name</label>
+            <input type="text" class="form-control" @bind-value="Model.name" />
+            <label>Suffix</label>
+            <input type="text" class="form-control" @bind-value="Model.suffix" />
+            <select value = "@CurrentOrgId"  onchange="@OnOrganizationChange">             
+                @foreach (var c in Organizations)
+                {
+                    <option value="@c.Id">@c.name</option>
+                }
+            </select>
+            <select value = "@CurrentWarhId" onchange="@OnWarehouseChange">             
+                @foreach (var c in Warehouses)
+                {
+                    <option value="@c.Id">@c.name</option>
+                }
+            </select>
+            <button type="submit" class="btn btn-primary" @onclick="SaveChanges">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="CancelChanges">Cancel</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Store Model { get; set; }
+    private List<Organization> Organizations { get; set; }
+    private List<Warehouse> Warehouses { get; set; }
+    private string CurrentOrgId { get; set; }
+    private string CurrentWarhId { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<Store> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        Organizations = await DbContext.StructureQueries.AllOrganizationFromDB();
+        Warehouses = await DbContext.StructureQueries.AllWarehousessFromDB();
+        if (Model.organization == null)
+        {
+            CurrentOrgId = "";                      
+        }else{
+            CurrentOrgId = Model.organization.Id.ToString(); 
+        }
+        if (Model.warehouse == null)
+        {
+            CurrentWarhId = "";                      
+        }else{
+            CurrentWarhId = Model.warehouse.Id.ToString(); 
+        }
+
+    }
+    private async Task SaveChanges()
+    {
+        await OnSave.InvokeAsync(Model);
+
+    }
+
+    private void CancelChanges()
+    {
+        OnCancel.InvokeAsync();
+    }
+
+    private void OnWarehouseChange(ChangeEventArgs e)
+    {
+        int warehouseID;
+        int.TryParse(e.Value.ToString(), out warehouseID);
+        Model.warehouse = Warehouses.Find(x => x.Id == warehouseID);
+    }
+
+    private void OnOrganizationChange(ChangeEventArgs e)
+    {
+        int organizationID;
+        int.TryParse(e.Value.ToString(), out organizationID);
+        Model.organization = Organizations.Find(x => x.Id == organizationID);
+    }
+
+}

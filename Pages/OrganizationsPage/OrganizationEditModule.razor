@@ -1,0 +1,41 @@
+@typeparam TItem
+
+@if (IsOpen)
+{
+    <div class="card">
+        <div class="card-body">
+            <label>Oranization name</label>
+            <input type="text" class="form-control" @bind-value="Model.name" />
+            <label>ERPOU</label>
+            <input type="text" class="form-control" @bind-value="Model.edrpou" />
+            <button type="submit" class="btn btn-primary" @onclick="SaveChanges">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="CancelChanges">Cancel</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Organization Model { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<Organization> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task SaveChanges()
+    {
+        await OnSave.InvokeAsync(Model);
+
+    }
+
+    private void CancelChanges()
+    {
+        OnCancel.InvokeAsync();
+    }
+
+}
